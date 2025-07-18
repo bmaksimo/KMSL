@@ -16,14 +16,13 @@
  * @module tests/knowledgeCenterTest.spec
  */
 import { test, expect } from '@playwright/test';
-import { acceptCookiesIfPresent } from './utils/consent.js';
+import { setupConsentHandler } from './utils/consent.js';
 
 //search "leader" in Knowledge Center on kmslh.com
 test('knowledge center test', async ({ page }) => {
 
-  //Check if cookie consent banner is present and click "Allow all" 
-  // Check for and accept cookies if shown
-  let consentAccepted = await acceptCookiesIfPresent(page);
+  // Set up the consent handler to automatically accept cookies
+  await setupConsentHandler(page);
 
   // 1. Navigate to the homepage
   await page.goto('https://kmslh.com/');
@@ -36,19 +35,16 @@ test('knowledge center test', async ({ page }) => {
   const submenu = page.getByRole('link', { name: 'News' });
   await expect(submenu).toBeVisible({ timeout: 3000 });
   await submenu.click();
+
   // Verify that navigation was successful
-  await expect(page).toHaveURL('https://kmslh.com/news/');
-  // Check for and accept cookies if shown 
-  if (!consentAccepted) {
-    consentAccepted = await acceptCookiesIfPresent(page)
-  }
+  await expect(page).toHaveURL('https://kmslh.com/news/', { timeout: 5000 });
 
   // 4. Wait for the search input box to appear and type "leader"
   const searchBox = page.getByRole('searchbox', { name: 'Search' });
   await expect(searchBox).toBeVisible();
   await searchBox.fill('leader');
   await page.getByRole('button', { name: 'Search' }).click();
-
+  await page.waitForTimeout(2000); // Wait for search results to load
   await expect(page).toHaveURL('https://kmslh.com/?s=leader');
 
   // 5. Verify that the search results contain at least one hit

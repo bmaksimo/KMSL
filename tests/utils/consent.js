@@ -1,18 +1,18 @@
-// utils/consent.js
-//import {page} from '@playwright/test';
-
 /**
- * If a cookie banner appears mid-test, click "Accept All".
- * Returns true if clicked, false otherwise.
+ * Sets up a handler to automatically click the "Allow all" button on a cookie consent banner if it appears during tests.
+ *
+ * @async
+ * @param {import('playwright').Page} page - The Playwright Page object to attach the consent handler to.
+ * @returns {Promise<void>} Resolves when the handler is set up.
  */
-export async function acceptCookiesIfPresent(page) {
-    const btn = page.locator('button:has-text("Allow all")');
-    await page.waitForTimeout(2000); // Wait for the banner to appear
-    if (await btn.count() > 0) {
-        await btn.first().click();
-        console.log('Cookie banner accepted');
-        return true;
-    }
-    console.log('No cookie banner appeared');
-    return false;
+// utils/consent.js
+
+export async function setupConsentHandler(page) {
+    await page.addLocatorHandler(
+        page.locator('button:has-text("Allow all")'),
+        async (locator) => {
+            await locator.click();
+            console.log('Consent accepted by handler');
+        }
+    );
 }
